@@ -23,13 +23,8 @@ func TestVelocity(t *testing.T) {
 			},
 			Timestamp: time.Time{},
 		}
-		ride := models.Ride{
-			ID:    "",
-			Start: startSegment,
-			End:   endSegment,
-		}
 
-		velocity := ride.GetVelocity()
+		velocity := startSegment.GetVelocity(endSegment)
 
 		if velocity != 0 {
 			t.Error("Expected 0 velocity, got", velocity, "instead")
@@ -64,13 +59,8 @@ func TestVelocity(t *testing.T) {
 			},
 			Timestamp: endTime,
 		}
-		ride := models.Ride{
-			ID:    "",
-			Start: startSegment,
-			End:   endSegment,
-		}
 
-		velocity := ride.GetVelocity()
+		velocity := startSegment.GetVelocity(endSegment)
 
 		if velocity != 23.33051501315813 {
 			t.Error("Expected 23.33051501315813 velocity, got", velocity, "instead")

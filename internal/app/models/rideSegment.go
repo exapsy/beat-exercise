@@ -30,7 +30,7 @@ func (s *RideSegment) GetVelocity(previousSegment RideSegment) float64 {
 	distanceKm := distance / 1000
 
 	timestampDifference := s.Timestamp.Sub(
-		s.Timestamp,
+		previousSegment.Timestamp,
 	)
 
 	diff := timestampDifference.Hours()

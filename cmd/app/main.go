@@ -15,12 +15,14 @@ func main() {
 	}
 	csvFilePath := os.Args[1]
 
-	records, err := csvfilereader.OpenAndReadFile(csvFilePath)
+	csvfilereader.OpenFile(csvFilePath)
+	file, err := csvfilereader.OpenFile(csvFilePath)
+	ride, err := file.ReadRide()
 	if err == csvfilereader.ErrEOF {
 		os.Exit(0)
 	}
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(records)
+	fmt.Println(ride)
 }
