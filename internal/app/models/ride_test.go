@@ -35,4 +35,45 @@ func TestVelocity(t *testing.T) {
 			t.Error("Expected 0 velocity, got", velocity, "instead")
 		}
 	})
+	t.Run("Velocity=Positive", func(t *testing.T) {
+		startTime, err := time.Parse(
+			time.RFC3339,
+			"2017-05-05T12:35:00+00:00",
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+		endTime, err := time.Parse(
+			time.RFC3339,
+			"2017-05-05T13:10:00+00:00",
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+		startSegment := models.RideSegment{
+			Point: models.Point{
+				Latitude:  38.920602,
+				Longitude: 77.222329,
+			},
+			Timestamp: startTime,
+		}
+		endSegment := models.RideSegment{
+			Point: models.Point{
+				Latitude:  38.889011,
+				Longitude: 77.050061,
+			},
+			Timestamp: endTime,
+		}
+		ride := models.Ride{
+			ID:    "",
+			Start: startSegment,
+			End:   endSegment,
+		}
+
+		velocity := ride.GetVelocity()
+
+		if velocity != 23.33051501315813 {
+			t.Error("Expected 23.33051501315813 velocity, got", velocity, "instead")
+		}
+	})
 }

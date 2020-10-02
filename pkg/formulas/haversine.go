@@ -8,7 +8,7 @@ import "math"
 //
 
 // EarthRadius is the approximate radius of earth in METERS
-var EarthRadius float64 = 6378100
+var EarthRadius float64 = 6371000
 
 // Point contains the latitude and the longitude of a point
 type Point struct {
@@ -21,8 +21,8 @@ func hsin(theta float64) float64 {
 	return math.Pow(math.Sin(theta/2), 2)
 }
 
-// CalculateHaversine calculates the distance between two points
-// considering that they're located on the earth
+// CalculateHaversine calculates the distance between two points in METERS
+// considering that they're located on the earth with radius of 6371000 meters
 //
 // Returns the distance between the two points
 // and the midpoint
