@@ -73,7 +73,7 @@ func ReadRide(
 
 	jobs := make(chan []string)
 
-	// Read records and parse to ride segments
+	// Parse records read from csv file
 	rideResult := make(chan *models.Ride)
 	go parseCSVRecordsToRide(jobs, rideResult)
 
