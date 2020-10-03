@@ -64,7 +64,6 @@ func ReadRide(
 	reader io.Reader,
 	csvReader *csv.Reader,
 ) (ride *models.Ride, err error) {
-	records := [][]string{}
 	var rideID string
 
 	if csvReader == nil {
@@ -72,11 +71,17 @@ func ReadRide(
 		csvReader.FieldsPerRecord = 4
 	}
 
+	jobs := make(chan []string)
+
+	// Read records and parse to ride segments
+	rideResult := make(chan *models.Ride)
+	go parseCSVRecordsToRide(jobs, rideResult)
+
 	if previousRecord.record != nil &&
 		len(previousRecord.record) > 0 &&
 		previousRecord.reader == csvReader {
 		_previousRecord := append([]string{}, previousRecord.record...)
-		records = append(records, _previousRecord)
+		jobs <- _previousRecord
 		previousRecord.record = []string{}
 	}
 
@@ -96,30 +101,43 @@ func ReadRide(
 		previousRecord.Set(csvReader, record)
 		record = append([]string{}, record...)
 
-		if rideID != "" && rideID != record[0] {
-			break
-		} else if rideID == "" {
+		if rideID == "" {
 			rideID = record[0]
 		}
+		if rideID != "" && rideID != record[0] {
+			break
+		}
 
-		records = append(records, record)
+		jobs <- record
 	}
+	close(jobs)
 
+	ride = <-rideResult
+	return
+}
+
+func parseCSVRecordsToRide(jobs <-chan []string, rideResult chan *models.Ride) {
 	segments := []models.RideSegment{}
-
-	// Read records and parse to ride segments
-	for _, record := range records {
+	var rideID string = ""
+	for {
+		record, ok := <-jobs
+		if !ok {
+			break
+		}
+		if rideID == "" {
+			rideID = record[0]
+		}
 		la, err := strconv.ParseFloat(record[1], 64)
 		if err != nil {
-			return nil, errors.New("Couldn't parse latitude")
+			panic("Couldn't parse latitude")
 		}
 		lo, err := strconv.ParseFloat(record[2], 64)
 		if err != nil {
-			return nil, errors.New("Couldn't parse longitude")
+			panic("Couldn't parse longitude")
 		}
 		timestamp, err := strconv.ParseInt(record[3], 10, 64)
 		if err != nil {
-			return nil, errors.New("Coulnd't parse timestamp")
+			panic("Coulnd't parse timestamp")
 		}
 
 		segments = append(
@@ -133,11 +151,9 @@ func ReadRide(
 			},
 		)
 	}
-
-	ride = models.MakeRide(
+	rideResult <- models.MakeRide(
 		rideID,
 		segments,
 	)
-
 	return
 }

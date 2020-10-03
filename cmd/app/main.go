@@ -11,7 +11,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Incorrect usage: app <csvfile>")
+		fmt.Println("Incorrect usage: app <csvfile> <optional: outputfile>")
 		os.Exit(1)
 	}
 	csvFilePath := os.Args[1]
