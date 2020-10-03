@@ -20,6 +20,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer file.Close()
 	var outputFile *os.File = nil
 	if len(os.Args) == 3 {
 		fileName := os.Args[2]
