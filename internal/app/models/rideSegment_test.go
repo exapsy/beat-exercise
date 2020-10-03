@@ -24,7 +24,7 @@ func TestVelocity(t *testing.T) {
 			Timestamp: time.Time{}.Add(time.Second * 1),
 		}
 
-		velocity := startSegment.GetVelocity(endSegment)
+		velocity := startSegment.VelocityFrom(endSegment)
 
 		if velocity != 0 {
 			t.Error("Expected 0 velocity, got", velocity, "instead")
@@ -60,7 +60,7 @@ func TestVelocity(t *testing.T) {
 			Timestamp: endTime,
 		}
 
-		velocity := startSegment.GetVelocity(endSegment)
+		velocity := startSegment.VelocityFrom(endSegment)
 
 		if velocity != 23.33051501315813 {
 			t.Error("Expected 23.33051501315813 velocity, got", velocity, "instead")

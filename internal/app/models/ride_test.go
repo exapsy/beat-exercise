@@ -55,7 +55,7 @@ func TestMakeRide(t *testing.T) {
 				Longitude: 0.0006,
 			},
 		}
-		v := segmentE.GetVelocity(segmentC)
+		v := segmentE.VelocityFrom(segmentC)
 		t.Log(v)
 		ride := models.MakeRide("0", []models.RideSegment{
 			segmentA,
@@ -71,8 +71,8 @@ func TestMakeRide(t *testing.T) {
 			t.Error("Expected 3 segments but instead got", len(ride.Segments))
 		}
 		for i := range ride.Segments[:1] {
-			if ride.Segments[i+1].GetVelocity(ride.Segments[i+2]) > 100 {
-				t.Error("Expected velocity <= 100kmh but got", ride.Segments[i+1].GetVelocity(ride.Segments[i+2]))
+			if ride.Segments[i+1].VelocityFrom(ride.Segments[i+2]) > 100 {
+				t.Error("Expected velocity <= 100kmh but got", ride.Segments[i+1].VelocityFrom(ride.Segments[i+2]))
 			}
 		}
 	})

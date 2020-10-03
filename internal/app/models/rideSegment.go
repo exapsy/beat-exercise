@@ -11,10 +11,10 @@ type RideSegment struct {
 	Timestamp time.Time
 }
 
-// GetVelocity returns the km/h calculated
+// VelocityFrom returns the km/h calculated
 // between the two segments of a ride
 // using the Haversine distance formula
-func (s *RideSegment) GetVelocity(segment RideSegment) (velocity float64) {
+func (s *RideSegment) VelocityFrom(segment RideSegment) (velocity float64) {
 	distanceKm := s.DistanceFrom(segment)
 
 	timestampDifference := s.Timestamp.Sub(

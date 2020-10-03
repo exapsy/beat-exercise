@@ -34,8 +34,8 @@ func OpenFile(path string) (file InputFile, err error) {
 }
 
 // Close closes the file buffer
-func (f *InputFile) Close() {
-	f.file.Close()
+func (f *InputFile) Close() error {
+	return f.file.Close()
 }
 
 // ReadRide returns a ride

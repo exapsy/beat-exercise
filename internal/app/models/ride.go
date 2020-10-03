@@ -50,7 +50,7 @@ func filterValidSegments(segments []RideSegment) (filteredSegments []RideSegment
 	// The next compared index should be compared to the last compared one
 	lastComparedIndex := 0
 	for i := 1; i < len(segments); i++ {
-		if segments[i].GetVelocity(segments[lastComparedIndex]) <= 100 {
+		if segments[i].VelocityFrom(segments[lastComparedIndex]) <= 100 {
 			filteredSegments = append(filteredSegments, segments[i])
 			lastComparedIndex = i
 		}
@@ -87,7 +87,7 @@ func (r *Ride) EstimateFare() (fare float32) {
 		// Todo: If previous segment is on 4:58 and next segment on 5:05
 		// it should probably seperate segments in appropriate pieces
 		// to estimate a fair fare
-		if segment.GetVelocity(previousSegment) > 10 {
+		if segment.VelocityFrom(previousSegment) > 10 {
 			hour, _, _ := segment.Timestamp.Clock()
 			isMidnight := hour <= 5 &&
 				hour > 0
@@ -96,7 +96,7 @@ func (r *Ride) EstimateFare() (fare float32) {
 			} else {
 				totalKmMidday += segment.DistanceFrom(previousSegment)
 			}
-		} else if segment.GetVelocity(previousSegment) <= 10 {
+		} else if segment.VelocityFrom(previousSegment) <= 10 {
 			totalIdleTime = totalIdleTime.Add(
 				time.Duration(segment.Timestamp.Sub(previousSegment.Timestamp)),
 			)
