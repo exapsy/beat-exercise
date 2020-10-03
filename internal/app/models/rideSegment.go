@@ -41,6 +41,7 @@ func (s *RideSegment) GetVelocity(segment RideSegment) float64 {
 	return velocity
 }
 
+// Equals tests all the values of two segments
 func (s *RideSegment) Equals(seg RideSegment) bool {
 	if s.Point.Latitude != seg.Point.Latitude {
 		return false
