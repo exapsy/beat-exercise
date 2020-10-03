@@ -144,14 +144,24 @@ func TestEstimateFare(t *testing.T) {
 				Longitude: 0.5,
 			},
 		}
+		segmentC := models.RideSegment{
+			Timestamp: time.Time{}.Add(time.Hour * 2),
+			Point: models.Point{
+				Latitude:  1,
+				Longitude: 1,
+			},
+		}
 		ride := models.MakeRide("0", []models.RideSegment{
 			segmentA,
 			segmentB,
+			segmentC,
 		})
 		fare := ride.EstimateFare()
 		expectedFare := models.FareFlag +
 			models.FareMidnightPerKm*
-				(float32(segmentB.DistanceFrom(segmentA)))
+				(float32(segmentB.DistanceFrom(segmentA))) +
+			models.FareMidnightPerKm*
+				(float32(segmentC.DistanceFrom(segmentB)))
 		if fare != expectedFare {
 			t.Error("Expected fare of", expectedFare, "but got", fare)
 		}
@@ -171,14 +181,24 @@ func TestEstimateFare(t *testing.T) {
 				Longitude: 0.5,
 			},
 		}
+		segmentC := models.RideSegment{
+			Timestamp: time.Time{}.Add(time.Hour * 8),
+			Point: models.Point{
+				Latitude:  1,
+				Longitude: 1,
+			},
+		}
 		ride := models.MakeRide("0", []models.RideSegment{
 			segmentA,
 			segmentB,
+			segmentC,
 		})
 		fare := ride.EstimateFare()
 		expectedFare := models.FareFlag +
 			models.FareMiddayPerKm*
-				(float32(segmentB.DistanceFrom(segmentA)))
+				(float32(segmentB.DistanceFrom(segmentA))) +
+			models.FareMiddayPerKm*
+				(float32(segmentC.DistanceFrom(segmentB)))
 		if fare != expectedFare {
 			t.Error("Expected fare of", expectedFare, "but got", fare)
 		}
