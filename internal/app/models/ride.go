@@ -1,5 +1,7 @@
 package models
 
+import "fmt"
+
 // Ride describes a ride of a taxi driver
 type Ride struct {
 	ID       string
@@ -28,6 +30,9 @@ func filterValidSegments(segments []RideSegment) (filteredSegments []RideSegment
 		if segments[i].GetVelocity(segments[lastComparedIndex]) <= 100 {
 			filteredSegments = append(filteredSegments, segments[i])
 			lastComparedIndex = i
+		}
+		if segments[lastComparedIndex].Timestamp.After(segments[i].Timestamp) {
+			fmt.Println("[Warning] A ride segment had lower timestamp than the previous segment")
 		}
 	}
 	return
