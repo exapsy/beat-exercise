@@ -16,7 +16,12 @@ var ErrEOF = errors.New("End of file")
 
 // File is a file
 type File struct {
-	file *os.File
+	file   *os.File
+	reader *csv.Reader
+	// Keep the last read record so when the cursor has bypassed it
+	// in case it's the next ride
+	// we dont lose it
+	nextRideFirstRecord []string
 }
 
 // OpenFile opens a file by filename path
@@ -38,15 +43,28 @@ func (f *File) Close() {
 
 // ReadRide returns a ride
 func (f *File) ReadRide() (ride *models.Ride, err error) {
-	return ReadRide(f.file)
+	return ReadRide(f.file, f.reader, &f.nextRideFirstRecord)
 }
 
 // ReadRide returns a ride from a buffer with ride segments
 // assuming that the file it's continuous and pre-sorted per-ride
-func ReadRide(reader io.Reader) (ride *models.Ride, err error) {
+func ReadRide(
+	reader io.Reader,
+	csvReader *csv.Reader,
+	nextRideFirstRecord *[]string,
+) (ride *models.Ride, err error) {
 	records := [][]string{}
-	csvReader := csv.NewReader(reader)
+	if csvReader == nil {
+		csvReader = csv.NewReader(reader)
+	}
 	var rideID string
+
+	if nextRideFirstRecord != nil && len(*nextRideFirstRecord) > 0 {
+		records = append(records, *nextRideFirstRecord)
+		rideID = (*nextRideFirstRecord)[0]
+		// Reset
+		*nextRideFirstRecord = []string{}
+	}
 
 	// Read and parse to string records
 	for {
@@ -55,6 +73,9 @@ func ReadRide(reader io.Reader) (ride *models.Ride, err error) {
 			break
 		}
 		if rideID != "" && rideID != string(record[0][0]) {
+			if nextRideFirstRecord != nil {
+				*nextRideFirstRecord = record
+			}
 			break
 		} else if rideID == "" {
 			rideID = string(record[0][0])
@@ -62,10 +83,7 @@ func ReadRide(reader io.Reader) (ride *models.Ride, err error) {
 		records = append(records, record)
 	}
 
-	ride = &models.Ride{
-		ID:       rideID,
-		Segments: []models.RideSegment{},
-	}
+	segments := []models.RideSegment{}
 
 	// Read records and parse to ride segments
 	for _, record := range records {
@@ -82,8 +100,8 @@ func ReadRide(reader io.Reader) (ride *models.Ride, err error) {
 			return nil, errors.New("Coulnd't parse timestamp")
 		}
 
-		ride.Segments = append(
-			ride.Segments,
+		segments = append(
+			segments,
 			models.RideSegment{
 				Timestamp: time.Unix(timestamp, 0),
 				Point: models.Point{
@@ -93,5 +111,10 @@ func ReadRide(reader io.Reader) (ride *models.Ride, err error) {
 			},
 		)
 	}
+
+	ride = models.MakeRide(
+		rideID,
+		segments,
+	)
 	return
 }

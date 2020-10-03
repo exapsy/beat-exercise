@@ -15,7 +15,6 @@ func main() {
 	}
 	csvFilePath := os.Args[1]
 
-	csvfilereader.OpenFile(csvFilePath)
 	file, err := csvfilereader.OpenFile(csvFilePath)
 	ride, err := file.ReadRide()
 	if err == csvfilereader.ErrEOF {
