@@ -8,8 +8,8 @@ type Point struct {
 	Longitude float64
 }
 
-// HoversineDistanceFrom returns the hoversine distance in meters between two points
-func (p *Point) HoversineDistanceFrom(p2 Point) (distance float64) {
+// HaversineDistanceFrom returns the hoversine distance in meters between two points
+func (p *Point) HaversineDistanceFrom(p2 Point) (distance float64) {
 	distance = formulas.CalculateHaversine(
 		formulas.Point{
 			Latitude:  p.Latitude,

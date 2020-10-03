@@ -32,7 +32,7 @@ func (s *RideSegment) GetVelocity(segment RideSegment) (velocity float64) {
 // DistanceFrom returns the distance in KILOMETRES between two segments.
 // Distance is measured by haversine formula
 func (s *RideSegment) DistanceFrom(segment RideSegment) (distance float64) {
-	distance = s.Point.HoversineDistanceFrom(
+	distance = s.Point.HaversineDistanceFrom(
 		segment.Point,
 	) / 1000
 
