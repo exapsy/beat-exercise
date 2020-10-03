@@ -10,7 +10,7 @@ import (
 )
 
 func TestReadFile(t *testing.T) {
-	t.Run("read_ride_with_2_records", func(t *testing.T) {
+	t.Run("read_ride_values", func(t *testing.T) {
 		var buffer bytes.Buffer
 		buffer.WriteString("1,37.966660,23.728308,1405594957\r\n")
 		buffer.WriteString("1,37.966627,23.728263,1405594966\r\n")
@@ -46,6 +46,7 @@ func TestReadFile(t *testing.T) {
 		}
 	})
 	t.Run("read_3_rides", func(t *testing.T) {
+		// Reading 3 rides prevents nextRideFirstRecord from being stuck to the previous value
 		var buffer bytes.Buffer
 		buffer.WriteString("1,37.966660,23.728308,1405594957\r\n")
 		buffer.WriteString("1,37.966627,23.728263,1405594966\r\n")

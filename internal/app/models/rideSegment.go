@@ -3,8 +3,6 @@ package models
 import (
 	"math"
 	"time"
-
-	"github.com/exapsy/beat-exercise/pkg/formulas"
 )
 
 // RideSegment describes either the start or the end of a ride
@@ -16,29 +14,29 @@ type RideSegment struct {
 // GetVelocity returns the km/h calculated
 // between the two segments of a ride
 // using the Haversine distance formula
-func (s *RideSegment) GetVelocity(segment RideSegment) float64 {
-	distance := formulas.CalculateHaversine(
-		formulas.Point{
-			Latitude:  s.Point.Latitude,
-			Longitude: s.Point.Longitude,
-		},
-		formulas.Point{
-			Latitude:  segment.Point.Latitude,
-			Longitude: segment.Point.Longitude,
-		},
-	)
-	distanceKm := distance / 1000
+func (s *RideSegment) GetVelocity(segment RideSegment) (velocity float64) {
+	distanceKm := s.DistanceFrom(segment)
 
 	timestampDifference := s.Timestamp.Sub(
 		segment.Timestamp,
 	)
 
 	diff := timestampDifference.Hours()
-	velocity := math.Abs(distanceKm / diff)
+	velocity = math.Abs(distanceKm / diff)
 	if math.IsNaN(velocity) {
-		return 0
+		velocity = 0
 	}
 	return velocity
+}
+
+// DistanceFrom returns the distance in KILOMETRES between two segments.
+// Distance is measured by haversine formula
+func (s *RideSegment) DistanceFrom(segment RideSegment) (distance float64) {
+	distance = s.Point.HoversineDistanceFrom(
+		segment.Point,
+	) / 1000
+
+	return distance
 }
 
 // Equals tests all the values of two segments

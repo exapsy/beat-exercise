@@ -8,6 +8,12 @@ import (
 )
 
 func TestMakeRide(t *testing.T) {
+	t.Run("no_segments", func(t *testing.T) {
+		ride := models.MakeRide("0", []models.RideSegment{})
+		if len(ride.Segments) != 0 {
+			t.Error("Expected segments with length of 0 but got", len(ride.Segments))
+		}
+	})
 	t.Run("skip_big_velocity_segment", func(t *testing.T) {
 		// 2 segments with in between > 100kmh velocity
 		segmentA := models.RideSegment{
@@ -86,6 +92,119 @@ func TestMakeRide(t *testing.T) {
 		}
 		if len(ride.Segments) != 1 {
 			t.Error("Expected 1 segments but instead got", len(ride.Segments))
+		}
+	})
+}
+
+func TestEstimateFare(t *testing.T) {
+	t.Run("minimum_fare_no_segments", func(t *testing.T) {
+		ride := models.MakeRide("0", []models.RideSegment{})
+		fare := ride.EstimateFare()
+		if fare != models.FareMinimum {
+			t.Error("Expected minimum fare of", models.FareMinimum, "but got instead", fare)
+		}
+	})
+	t.Run("idle_3_hours", func(t *testing.T) {
+		segmentA := models.RideSegment{
+			Timestamp: time.Time{},
+			Point: models.Point{
+				Latitude:  0,
+				Longitude: 0,
+			},
+		}
+		segmentB := models.RideSegment{
+			Timestamp: time.Time{}.Add(time.Hour * 3),
+			Point: models.Point{
+				Latitude:  0.1,
+				Longitude: 0.2,
+			},
+		}
+		ride := models.MakeRide("0", []models.RideSegment{
+			segmentA,
+			segmentB,
+		})
+		fare := ride.EstimateFare()
+		expectedFare := models.FareFlag + models.FareIdlePerHour*3
+		if fare != expectedFare {
+			t.Error("Expected idle fare of", expectedFare, "but got", fare)
+		}
+	})
+	t.Run("3_km_midnight", func(t *testing.T) {
+		segmentA := models.RideSegment{
+			Timestamp: time.Time{},
+			Point: models.Point{
+				Latitude:  0,
+				Longitude: 0,
+			},
+		}
+		segmentB := models.RideSegment{
+			Timestamp: time.Time{}.Add(time.Hour * 1),
+			Point: models.Point{
+				Latitude:  0.5,
+				Longitude: 0.5,
+			},
+		}
+		ride := models.MakeRide("0", []models.RideSegment{
+			segmentA,
+			segmentB,
+		})
+		fare := ride.EstimateFare()
+		expectedFare := models.FareFlag +
+			models.FareMidnightPerKm*
+				(float32(segmentB.DistanceFrom(segmentA)))
+		if fare != expectedFare {
+			t.Error("Expected fare of", expectedFare, "but got", fare)
+		}
+	})
+	t.Run("3_km_midday", func(t *testing.T) {
+		segmentA := models.RideSegment{
+			Timestamp: time.Time{}.Add(time.Hour * 6),
+			Point: models.Point{
+				Latitude:  0,
+				Longitude: 0,
+			},
+		}
+		segmentB := models.RideSegment{
+			Timestamp: time.Time{}.Add(time.Hour * 7),
+			Point: models.Point{
+				Latitude:  0.5,
+				Longitude: 0.5,
+			},
+		}
+		ride := models.MakeRide("0", []models.RideSegment{
+			segmentA,
+			segmentB,
+		})
+		fare := ride.EstimateFare()
+		expectedFare := models.FareFlag +
+			models.FareMiddayPerKm*
+				(float32(segmentB.DistanceFrom(segmentA)))
+		if fare != expectedFare {
+			t.Error("Expected fare of", expectedFare, "but got", fare)
+		}
+	})
+	t.Run("minimum_fare", func(t *testing.T) {
+		segmentA := models.RideSegment{
+			Timestamp: time.Time{},
+			Point: models.Point{
+				Latitude:  0,
+				Longitude: 0,
+			},
+		}
+		segmentB := models.RideSegment{
+			Timestamp: time.Time{}.Add(time.Minute * 1),
+			Point: models.Point{
+				Latitude:  0.001,
+				Longitude: 0.001,
+			},
+		}
+		ride := models.MakeRide("0", []models.RideSegment{
+			segmentA,
+			segmentB,
+		})
+		fare := ride.EstimateFare()
+		if fare != models.FareMinimum {
+			t.Error("Expected minimum fare of", models.FareMinimum, "but got instead", fare)
 		}
 	})
 }
