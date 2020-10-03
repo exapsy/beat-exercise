@@ -21,7 +21,7 @@ func TestVelocity(t *testing.T) {
 				Latitude:  0,
 				Longitude: 0,
 			},
-			Timestamp: time.Time{},
+			Timestamp: time.Time{}.Add(time.Second * 1),
 		}
 
 		velocity := startSegment.GetVelocity(endSegment)
@@ -64,6 +64,89 @@ func TestVelocity(t *testing.T) {
 
 		if velocity != 23.33051501315813 {
 			t.Error("Expected 23.33051501315813 velocity, got", velocity, "instead")
+		}
+	})
+}
+
+func TestEquals(t *testing.T) {
+	t.Run("equal", func(t *testing.T) {
+		segmentA := models.RideSegment{
+			Point: models.Point{
+				Latitude:  38.920602,
+				Longitude: 77.222329,
+			},
+			Timestamp: time.Time{}.Add(time.Hour),
+		}
+		segmentB := models.RideSegment{
+			Point: models.Point{
+				Latitude:  38.920602,
+				Longitude: 77.222329,
+			},
+			Timestamp: time.Time{}.Add(time.Hour),
+		}
+		equals := segmentA.Equals(segmentB)
+		if !equals {
+			t.Error("Expected segments to be equal")
+		}
+	})
+	t.Run("not_equal_longitude", func(t *testing.T) {
+		segmentA := models.RideSegment{
+			Point: models.Point{
+				Latitude:  38.920602,
+				Longitude: 77.222329,
+			},
+			Timestamp: time.Time{}.Add(time.Hour),
+		}
+		segmentB := models.RideSegment{
+			Point: models.Point{
+				Latitude:  38.920602,
+				Longitude: 78.222329,
+			},
+			Timestamp: time.Time{}.Add(time.Hour),
+		}
+		equals := segmentA.Equals(segmentB)
+		if equals {
+			t.Error("Expected segments not be equal")
+		}
+	})
+	t.Run("not_equal_latitude", func(t *testing.T) {
+		segmentA := models.RideSegment{
+			Point: models.Point{
+				Latitude:  38.920602,
+				Longitude: 77.222329,
+			},
+			Timestamp: time.Time{}.Add(time.Hour),
+		}
+		segmentB := models.RideSegment{
+			Point: models.Point{
+				Latitude:  37.920602,
+				Longitude: 77.222329,
+			},
+			Timestamp: time.Time{}.Add(time.Hour),
+		}
+		equals := segmentA.Equals(segmentB)
+		if equals {
+			t.Error("Expected segments not be equal")
+		}
+	})
+	t.Run("not_equal_timestamp", func(t *testing.T) {
+		segmentA := models.RideSegment{
+			Point: models.Point{
+				Latitude:  38.920602,
+				Longitude: 77.222329,
+			},
+			Timestamp: time.Time{}.Add(time.Hour),
+		}
+		segmentB := models.RideSegment{
+			Point: models.Point{
+				Latitude:  38.920602,
+				Longitude: 77.222329,
+			},
+			Timestamp: time.Time{}.Add(time.Second),
+		}
+		equals := segmentA.Equals(segmentB)
+		if equals {
+			t.Error("Expected segments not be equal")
 		}
 	})
 }

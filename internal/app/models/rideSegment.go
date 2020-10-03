@@ -16,21 +16,21 @@ type RideSegment struct {
 // GetVelocity returns the km/h calculated
 // between the two segments of a ride
 // using the Haversine distance formula
-func (s *RideSegment) GetVelocity(previousSegment RideSegment) float64 {
+func (s *RideSegment) GetVelocity(segment RideSegment) float64 {
 	distance := formulas.CalculateHaversine(
 		formulas.Point{
 			Latitude:  s.Point.Latitude,
 			Longitude: s.Point.Longitude,
 		},
 		formulas.Point{
-			Latitude:  previousSegment.Point.Latitude,
-			Longitude: previousSegment.Point.Longitude,
+			Latitude:  segment.Point.Latitude,
+			Longitude: segment.Point.Longitude,
 		},
 	)
 	distanceKm := distance / 1000
 
 	timestampDifference := s.Timestamp.Sub(
-		previousSegment.Timestamp,
+		segment.Timestamp,
 	)
 
 	diff := timestampDifference.Hours()
@@ -39,4 +39,17 @@ func (s *RideSegment) GetVelocity(previousSegment RideSegment) float64 {
 		return 0
 	}
 	return velocity
+}
+
+func (s *RideSegment) Equals(seg RideSegment) bool {
+	if s.Point.Latitude != seg.Point.Latitude {
+		return false
+	}
+	if s.Point.Longitude != seg.Point.Longitude {
+		return false
+	}
+	if s.Timestamp != seg.Timestamp {
+		return false
+	}
+	return true
 }
