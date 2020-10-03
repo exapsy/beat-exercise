@@ -54,6 +54,13 @@ func filterValidSegments(segments []RideSegment) (filteredSegments []RideSegment
 			filteredSegments = append(filteredSegments, segments[i])
 			lastComparedIndex = i
 		}
+		if segments[lastComparedIndex].Timestamp.IsZero() {
+			fmt.Println("[Warning] A segment timestamp was zero")
+		}
+		// It prints it by mistake for some reason
+		// if segments[lastComparedIndex].Timestamp.Equal(segments[i].Timestamp) {
+		// 	fmt.Println("[Warning] A segment's timestamp was the same with the previous timestamp")
+		// }
 		if segments[lastComparedIndex].Timestamp.After(segments[i].Timestamp) {
 			fmt.Println("[Warning] Potential desync smell: A ride segment had lower timestamp than the previous segment")
 		}

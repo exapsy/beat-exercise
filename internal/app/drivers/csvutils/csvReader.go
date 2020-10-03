@@ -1,4 +1,4 @@
-package csvfilereader
+package csvutils
 
 import (
 	"encoding/csv"
@@ -14,36 +14,48 @@ import (
 // ErrEOF signifies a file error when there's nothing else to read
 var ErrEOF = errors.New("End of file")
 
-// File is a file
-type File struct {
+// InputFile is an input file structure with meta data
+type InputFile struct {
 	file   *os.File
 	reader *csv.Reader
-	// Keep the last read record so when the cursor has bypassed it
-	// in case it's the next ride
-	// we dont lose it
-	nextRideFirstRecord []string
 }
 
 // OpenFile opens a file by filename path
-func OpenFile(path string) (file File, err error) {
+func OpenFile(path string) (file InputFile, err error) {
 	fileStream, err := os.Open(path)
 	if err != nil {
 		return
 	}
-	file = File{
-		file: fileStream,
+	file = InputFile{
+		file:   fileStream,
+		reader: csv.NewReader(fileStream),
 	}
 	return
 }
 
 // Close closes the file buffer
-func (f *File) Close() {
+func (f *InputFile) Close() {
 	f.file.Close()
 }
 
 // ReadRide returns a ride
-func (f *File) ReadRide() (ride *models.Ride, err error) {
-	return ReadRide(f.file, f.reader, &f.nextRideFirstRecord)
+func (f *InputFile) ReadRide() (ride *models.Ride, err error) {
+	return ReadRide(f.file, f.reader)
+}
+
+type previousRecordType struct {
+	reader *csv.Reader
+	record []string
+	// Used for EOF, so the last ride in buffer will be returned
+	// and will not output an error
+	lastError error
+}
+
+var previousRecord previousRecordType = previousRecordType{}
+
+func (p *previousRecordType) Set(reader *csv.Reader, record []string) {
+	previousRecord.reader = reader
+	previousRecord.record = append([]string{}, record...)
 }
 
 // ReadRide returns a ride from a buffer with ride segments
@@ -51,35 +63,45 @@ func (f *File) ReadRide() (ride *models.Ride, err error) {
 func ReadRide(
 	reader io.Reader,
 	csvReader *csv.Reader,
-	nextRideFirstRecord *[]string,
 ) (ride *models.Ride, err error) {
 	records := [][]string{}
-	if csvReader == nil {
-		csvReader = csv.NewReader(reader)
-	}
 	var rideID string
 
-	if nextRideFirstRecord != nil && len(*nextRideFirstRecord) > 0 {
-		records = append(records, *nextRideFirstRecord)
-		rideID = (*nextRideFirstRecord)[0]
-		// Reset
-		*nextRideFirstRecord = []string{}
+	if csvReader == nil {
+		csvReader = csv.NewReader(reader)
+		csvReader.FieldsPerRecord = 4
+	}
+
+	if previousRecord.record != nil &&
+		len(previousRecord.record) > 0 &&
+		previousRecord.reader == csvReader {
+		_previousRecord := append([]string{}, previousRecord.record...)
+		records = append(records, _previousRecord)
+		previousRecord.record = []string{}
 	}
 
 	// Read and parse to string records
 	for {
 		record, errTmp := csvReader.Read()
+		if previousRecord.lastError == errTmp &&
+			errTmp == io.EOF {
+			return nil, ErrEOF
+		}
 		if errTmp != nil {
+			previousRecord.lastError = errTmp
 			break
 		}
-		if rideID != "" && rideID != string(record[0][0]) {
-			if nextRideFirstRecord != nil {
-				*nextRideFirstRecord = record
-			}
+
+		// Reallocate reused pointers
+		previousRecord.Set(csvReader, record)
+		record = append([]string{}, record...)
+
+		if rideID != "" && rideID != record[0] {
 			break
 		} else if rideID == "" {
-			rideID = string(record[0][0])
+			rideID = record[0]
 		}
+
 		records = append(records, record)
 	}
 
@@ -116,5 +138,6 @@ func ReadRide(
 		rideID,
 		segments,
 	)
+
 	return
 }

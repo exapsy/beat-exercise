@@ -5,7 +5,8 @@ import (
 	"log"
 	"os"
 
-	csvfilereader "github.com/exapsy/beat-exercise/internal/app/drivers/csvFileReader"
+	"github.com/exapsy/beat-exercise/internal/app/drivers/csvutils"
+	"github.com/exapsy/beat-exercise/internal/app/models"
 )
 
 func main() {
@@ -15,13 +16,33 @@ func main() {
 	}
 	csvFilePath := os.Args[1]
 
-	file, err := csvfilereader.OpenFile(csvFilePath)
-	ride, err := file.ReadRide()
-	if err == csvfilereader.ErrEOF {
-		os.Exit(0)
-	}
+	file, err := csvutils.OpenFile(csvFilePath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(ride)
+	var outputFile *os.File = nil
+	if len(os.Args) == 3 {
+		fileName := os.Args[2]
+		outputFile, err = os.Create(fileName)
+		if err != nil {
+			panic(err)
+		}
+		defer outputFile.Close()
+	}
+	for {
+		ride, err := file.ReadRide()
+		if err == csvutils.ErrEOF {
+			fmt.Println("Done!")
+			os.Exit(0)
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		if outputFile != nil {
+			csvutils.WriteRide(outputFile, *ride)
+		} else {
+			ridesOutput := csvutils.GetRidesOutputString([]models.Ride{*ride})
+			fmt.Println(ridesOutput)
+		}
+	}
 }
