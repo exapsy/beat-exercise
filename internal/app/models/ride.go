@@ -83,24 +83,26 @@ func (r *Ride) EstimateFare() (fare float32) {
 
 	// Aggregate through all the segments
 	for i, segment := range r.Segments[1:] {
-		previousSegment := r.Segments[i]
-		// Todo: If previous segment is on 4:58 and next segment on 5:05
-		// it should probably seperate segments in appropriate pieces
-		// to estimate a fair fare
-		if segment.VelocityFrom(previousSegment) > 10 {
-			hour, _, _ := segment.Timestamp.Clock()
-			isMidnight := hour <= 5 &&
-				hour > 0
-			if isMidnight {
-				totalKmMidnight += segment.DistanceFrom(previousSegment)
-			} else {
-				totalKmMidday += segment.DistanceFrom(previousSegment)
+		go func(segment RideSegment, i int) {
+			previousSegment := r.Segments[i]
+			// Todo: If previous segment is on 4:58 and next segment on 5:05
+			// it should probably seperate segments in appropriate pieces
+			// to estimate a fair fare
+			if segment.VelocityFrom(previousSegment) > 10 {
+				hour, _, _ := segment.Timestamp.Clock()
+				isMidnight := hour <= 5 &&
+					hour > 0
+				if isMidnight {
+					totalKmMidnight += segment.DistanceFrom(previousSegment)
+				} else {
+					totalKmMidday += segment.DistanceFrom(previousSegment)
+				}
+			} else if segment.VelocityFrom(previousSegment) <= 10 {
+				totalIdleTime = totalIdleTime.Add(
+					time.Duration(segment.Timestamp.Sub(previousSegment.Timestamp)),
+				)
 			}
-		} else if segment.VelocityFrom(previousSegment) <= 10 {
-			totalIdleTime = totalIdleTime.Add(
-				time.Duration(segment.Timestamp.Sub(previousSegment.Timestamp)),
-			)
-		}
+		}(segment, i)
 	}
 
 	// Idle time fare
