@@ -96,22 +96,22 @@ func TestReadFile(t *testing.T) {
 		for i := 0; i < 120; i++ {
 			timestampStr := strconv.FormatInt(timestamp.Unix(), 10)
 			buffer.WriteString("1,37.966660,23.728308," + timestampStr + "\r\n")
-			timestamp.Add(time.Second)
+			timestamp = timestamp.Add(time.Second * 1)
 		}
 		for i := 0; i < 280; i++ {
 			timestampStr := strconv.FormatInt(timestamp.Unix(), 10)
 			buffer.WriteString("2,37.966660,23.728308," + timestampStr + "\r\n")
-			timestamp.Add(time.Second)
+			timestamp = timestamp.Add(time.Second * 1)
 		}
 		for i := 0; i < 100; i++ {
 			timestampStr := strconv.FormatInt(timestamp.Unix(), 10)
 			buffer.WriteString("3,37.966660,23.728308," + timestampStr + "\r\n")
-			timestamp.Add(time.Second)
+			timestamp = timestamp.Add(time.Second * 1)
 		}
 		for i := 0; i < 200; i++ {
 			timestampStr := strconv.FormatInt(timestamp.Unix(), 10)
 			buffer.WriteString("4,37.966660,23.728308," + timestampStr + "\r\n")
-			timestamp.Add(time.Second)
+			timestamp = timestamp.Add(time.Second * 1)
 		}
 
 		// Keep the cursor
