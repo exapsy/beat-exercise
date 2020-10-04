@@ -20,8 +20,19 @@ type InputFile struct {
 	reader *csv.Reader
 }
 
+type previousRecordType struct {
+	reader *csv.Reader
+	record []string
+	// Used for EOF, so the last ride in buffer will be returned
+	// and will not output an error
+	lastError error
+}
+
+var previousRecord previousRecordType = previousRecordType{}
+
 // OpenFile opens a file by filename path
 func OpenFile(path string) (file InputFile, err error) {
+	previousRecord.lastError = nil
 	fileStream, err := os.Open(path)
 	if err != nil {
 		return
@@ -43,16 +54,6 @@ func (f *InputFile) ReadRide() (ride *models.Ride, err error) {
 	return ReadRide(f.file, f.reader)
 }
 
-type previousRecordType struct {
-	reader *csv.Reader
-	record []string
-	// Used for EOF, so the last ride in buffer will be returned
-	// and will not output an error
-	lastError error
-}
-
-var previousRecord previousRecordType = previousRecordType{}
-
 func (p *previousRecordType) Set(reader *csv.Reader, record []string) {
 	previousRecord.reader = reader
 	previousRecord.record = append([]string{}, record...)
@@ -69,6 +70,9 @@ func ReadRide(
 	if csvReader == nil {
 		csvReader = csv.NewReader(reader)
 		csvReader.FieldsPerRecord = 4
+	}
+	if csvReader != previousRecord.reader {
+		previousRecord.lastError = nil
 	}
 
 	jobs := make(chan []string)
@@ -89,6 +93,7 @@ func ReadRide(
 	for {
 		record, errTmp := csvReader.Read()
 		if previousRecord.lastError == errTmp &&
+			csvReader == previousRecord.reader &&
 			errTmp == io.EOF {
 			return nil, ErrEOF
 		}
