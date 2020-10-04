@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -82,8 +83,11 @@ func (r *Ride) EstimateFare() (fare float32) {
 	var totalKmMidday float64 = 0
 
 	// Aggregate through all the segments
+	var wg sync.WaitGroup
 	for i, segment := range r.Segments[1:] {
-		go func(segment RideSegment, i int) {
+		wg.Add(1)
+		go func(segment RideSegment, i int, wg *sync.WaitGroup) {
+			defer wg.Done()
 			previousSegment := r.Segments[i]
 			// Todo: If previous segment is on 4:58 and next segment on 5:05
 			// it should probably seperate segments in appropriate pieces
@@ -102,8 +106,10 @@ func (r *Ride) EstimateFare() (fare float32) {
 					time.Duration(segment.Timestamp.Sub(previousSegment.Timestamp)),
 				)
 			}
-		}(segment, i)
+		}(segment, i, &wg)
 	}
+
+	wg.Wait()
 
 	// Idle time fare
 	fare += float32(totalIdleTime.Hour()) * FareIdlePerHour
