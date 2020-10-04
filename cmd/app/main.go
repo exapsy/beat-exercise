@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/exapsy/beat-exercise/internal/app/drivers/csvutils"
-	"github.com/exapsy/beat-exercise/internal/app/models"
 )
 
 func main() {
@@ -42,7 +41,7 @@ func main() {
 		if outputFile != nil {
 			csvutils.WriteRide(outputFile, *ride)
 		} else {
-			ridesOutput := csvutils.GetRidesOutputString([]models.Ride{*ride})
+			ridesOutput := csvutils.GetRideOutputString(*ride)
 			fmt.Println(ridesOutput)
 		}
 	}

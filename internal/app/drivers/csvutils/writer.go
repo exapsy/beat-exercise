@@ -19,14 +19,6 @@ func WriteRide(file *os.File, ride models.Ride) (err error) {
 	return
 }
 
-// GetRidesOutputString returns a ride's string output
-func GetRidesOutputString(rides []models.Ride) (ridesOutput string) {
-	for _, ride := range rides {
-		ridesOutput += GetRideOutputString(ride)
-	}
-	return
-}
-
 // GetRideOutputString returns a ride's string output
 func GetRideOutputString(ride models.Ride) (rideOutput string) {
 	fare := float64(ride.EstimateFare())
