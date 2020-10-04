@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/exapsy/beat-exercise/internal/app/drivers/csvutils"
 )
@@ -29,11 +30,13 @@ func main() {
 		}
 		defer outputFile.Close()
 	}
+
+	start := time.Now()
+
 	for {
 		ride, err := file.ReadRide()
 		if err == csvutils.ErrEOF {
-			fmt.Println("Done!")
-			os.Exit(0)
+			break
 		}
 		if err != nil {
 			log.Fatal(err)
@@ -45,4 +48,7 @@ func main() {
 			fmt.Println(ridesOutput)
 		}
 	}
+	elapsed := time.Since(start)
+	fmt.Printf("Time elapsed: %s\n", elapsed)
+	fmt.Println("Done!")
 }
